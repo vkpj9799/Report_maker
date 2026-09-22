@@ -1,0 +1,590 @@
+<title>Downtime Log</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg:#eef1ef;
+    --surface:#ffffff;
+    --surface-2:#f6f7f5;
+    --border:#d9ddda;
+    --border-strong:#c3c9c4;
+    --text:#1b211e;
+    --text-dim:#5c655f;
+    --text-faint:#8b938c;
+    --accent:#c9541f;
+    --accent-ink:#fff9f5;
+    --accent-soft:#fbe9de;
+    --chip-bg:#ffffff;
+    --chip-border:#d9ddda;
+    --danger:#b3271a;
+    --focus:#c9541f;
+    --shadow: 0 1px 2px rgba(20,24,21,0.06), 0 4px 14px rgba(20,24,21,0.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14181a;
+      --surface:#1b2023;
+      --surface-2:#20262a;
+      --border:#2d3438;
+      --border-strong:#3b4348;
+      --text:#eef1ee;
+      --text-dim:#9aa3a0;
+      --text-faint:#6d7674;
+      --accent:#e37a3f;
+      --accent-ink:#1a1310;
+      --accent-soft:#3a2418;
+      --chip-bg:#20262a;
+      --chip-border:#343c40;
+      --danger:#e2604f;
+      --focus:#e37a3f;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 20px rgba(0,0,0,0.3);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14181a;
+    --surface:#1b2023;
+    --surface-2:#20262a;
+    --border:#2d3438;
+    --border-strong:#3b4348;
+    --text:#eef1ee;
+    --text-dim:#9aa3a0;
+    --text-faint:#6d7674;
+    --accent:#e37a3f;
+    --accent-ink:#1a1310;
+    --accent-soft:#3a2418;
+    --chip-bg:#20262a;
+    --chip-border:#343c40;
+    --danger:#e2604f;
+    --focus:#e37a3f;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 20px rgba(0,0,0,0.3);
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    padding-inline:16px;
+    padding-block: 20px calc(112px + env(safe-area-inset-bottom, 0px));
+    max-width:640px;
+    margin-inline:auto;
+    overscroll-behavior-y:contain;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:11.5px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:0 0 4px;
+  }
+  h1{
+    font-family:'Archivo', system-ui, sans-serif;
+    font-weight:800;
+    font-size:26px;
+    letter-spacing:-0.01em;
+    margin:0 0 2px;
+    text-wrap:balance;
+  }
+  .sub{
+    color:var(--text-dim);
+    font-size:13.5px;
+    margin:0 0 22px;
+  }
+
+  section{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:12px;
+    box-shadow:var(--shadow);
+  }
+  .label-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  label.field-label{
+    font-family:'Archivo', system-ui, sans-serif;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:.02em;
+    text-transform:uppercase;
+    color:var(--text);
+  }
+  .field-hint{
+    font-size:11.5px;
+    color:var(--text-faint);
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+  }
+
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .chip{
+    appearance:none;
+    border:1px solid var(--chip-border);
+    background:var(--chip-bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    font-size:14px;
+    font-weight:500;
+    padding:11px 14px;
+    min-height:44px;
+    border-radius:9px;
+    cursor:pointer;
+    touch-action:manipulation;
+    user-select:none;
+    -webkit-user-select:none;
+    transition:background .12s ease, border-color .12s ease, color .12s ease, transform .06s ease;
+  }
+  .chip:hover{ border-color:var(--border-strong); }
+  .chip:active{ transform:scale(0.97); }
+  .chip.selected{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:var(--accent-ink);
+    font-weight:600;
+  }
+  .chip:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:2px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .chip, #generateBtn, .now-btn, #copyBtn{ transition:none; }
+    .chip:active, #generateBtn:active, .now-btn:active{ transform:none; }
+  }
+
+  .line-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(48px, 1fr));
+  }
+  .line-grid .chip{ text-align:center; padding:11px 4px; font-family:'IBM Plex Mono', ui-monospace, monospace; }
+
+  textarea{
+    width:100%;
+    resize:none;
+    min-height:48px;
+    max-height:220px;
+    overflow-y:hidden;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:9px;
+    color:var(--text);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    font-size:16px;
+    padding:12px;
+    line-height:1.45;
+  }
+  textarea::placeholder{ color:var(--text-faint); }
+
+  .time-row{
+    display:flex;
+    gap:8px;
+    align-items:flex-end;
+  }
+  .time-field{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+  }
+  .time-field span{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.07em;
+    color:var(--text-faint);
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+  }
+  .time-field-row{ display:flex; gap:6px; }
+  input[type="time"]{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:9px;
+    color:var(--text);
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:16px;
+    padding:11px 8px;
+    min-height:44px;
+    width:100%;
+    flex:1;
+    min-width:0;
+  }
+  .now-btn{
+    appearance:none;
+    border:1px solid var(--chip-border);
+    background:var(--chip-bg);
+    color:var(--text-dim);
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.03em;
+    border-radius:9px;
+    padding:0 10px;
+    min-height:44px;
+    cursor:pointer;
+    touch-action:manipulation;
+  }
+  .now-btn:active{ transform:scale(0.96); }
+  .time-arrow{ color:var(--text-faint); font-size:16px; padding-bottom:11px; }
+
+  .empty-note{
+    grid-column:1 / -1;
+    color:var(--text-faint);
+    font-size:13px;
+    font-style:italic;
+  }
+
+  .bar{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background:linear-gradient(to top, var(--bg) 66%, transparent);
+  }
+  .bar-inner{ max-width:608px; margin-inline:auto; }
+  #generateBtn{
+    width:100%;
+    background:var(--accent);
+    color:var(--accent-ink);
+    border:none;
+    border-radius:11px;
+    font-family:'Archivo', system-ui, sans-serif;
+    font-weight:700;
+    font-size:16px;
+    letter-spacing:.01em;
+    padding:16px 0;
+    min-height:52px;
+    cursor:pointer;
+    touch-action:manipulation;
+    box-shadow:var(--shadow);
+  }
+  #generateBtn:active{ transform:scale(0.99); }
+
+  #errorNote{
+    color:var(--danger);
+    font-size:12.5px;
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    text-align:center;
+    margin:0 0 8px;
+    min-height:1em;
+  }
+
+  #output-section{ display:none; }
+  #output-section.show{ display:block; }
+  pre#outputText{
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:13.5px;
+    line-height:1.65;
+    white-space:pre-wrap;
+    word-break:break-word;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:13px 14px;
+    margin:0 0 10px;
+    color:var(--text);
+  }
+  #copyBtn{
+    width:100%;
+    background:transparent;
+    color:var(--accent);
+    border:1.5px solid var(--accent);
+    border-radius:9px;
+    font-family:'Archivo', system-ui, sans-serif;
+    font-weight:700;
+    font-size:14.5px;
+    padding:13px 0;
+    min-height:48px;
+    cursor:pointer;
+    touch-action:manipulation;
+    transition:background .12s ease, color .12s ease;
+  }
+  #copyBtn.copied{
+    background:var(--accent);
+    color:var(--accent-ink);
+  }
+</style>
+
+<p class="eyebrow">NextStar Energy · CTO Cell Line</p>
+<h1>Downtime Log</h1>
+<p class="sub">Fill in the stoppage details, generate the message, then copy it into the shift WhatsApp group.</p>
+
+<section>
+  <div class="label-row"><label class="field-label">Equipment</label></div>
+  <div class="chips" id="equipmentChips"></div>
+</section>
+
+<section id="lineSection">
+  <div class="label-row">
+    <label class="field-label">Line</label>
+    <span class="field-hint" id="lineHint"></span>
+  </div>
+  <div class="chips line-grid" id="lineChips"></div>
+</section>
+
+<section>
+  <div class="label-row"><label class="field-label">Type</label></div>
+  <div class="chips" id="typeChips"></div>
+</section>
+
+<section>
+  <div class="label-row"><label class="field-label" for="causeInput">Cause</label></div>
+  <textarea id="causeInput" placeholder="e.g. Vacuum error" rows="1" autocapitalize="sentences" autocomplete="off"></textarea>
+</section>
+
+<section>
+  <div class="label-row"><label class="field-label" for="actionInput">Action</label></div>
+  <textarea id="actionInput" placeholder="e.g. Replace vacuum pads" rows="1" autocapitalize="sentences" autocomplete="off"></textarea>
+</section>
+
+<section>
+  <div class="label-row"><label class="field-label">Time</label></div>
+  <div class="time-row">
+    <label class="time-field">
+      <span>Start</span>
+      <div class="time-field-row">
+        <input type="time" id="startTime" value="12:00">
+        <button type="button" class="now-btn" data-target="startTime">NOW</button>
+      </div>
+    </label>
+    <span class="time-arrow">→</span>
+    <label class="time-field">
+      <span>End</span>
+      <div class="time-field-row">
+        <input type="time" id="endTime" value="13:00">
+        <button type="button" class="now-btn" data-target="endTime">NOW</button>
+      </div>
+    </label>
+  </div>
+</section>
+
+<section id="output-section">
+  <div class="label-row"><label class="field-label">Message</label></div>
+  <pre id="outputText"></pre>
+  <button id="copyBtn" type="button">Copy to clipboard</button>
+</section>
+
+<div class="bar">
+  <div class="bar-inner">
+    <p id="errorNote"></p>
+    <button id="generateBtn" type="button">Generate message</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var EQUIPMENT = ["JGF","Selector(OCV)","Selector(JGF)","Selector(CDC)","HPCD","OCV","Degas","CDC","EOL"];
+
+  var LINES_1TO4 = ["1","2","3","4"];
+  var LINES_12 = ["1-1","1-2","1-3","2-1","2-2","2-3","3-1","3-2","3-3","4-1","4-2","4-3"];
+  var LINES_DEGAS = ["1-1","1-2","2-1","2-2","3-1","3-2"];
+  var LINES_OCV = [];
+  for (var i=1;i<=18;i++) LINES_OCV.push(String(i));
+
+  var LINE_MAP = {
+    "JGF": LINES_12,
+    "CDC": LINES_12,
+    "Selector(OCV)": LINES_1TO4,
+    "Selector(JGF)": LINES_1TO4,
+    "Selector(CDC)": LINES_1TO4,
+    "Degas": LINES_DEGAS,
+    "EOL": LINES_DEGAS,
+    "OCV": LINES_OCV,
+    "HPCD": LINES_1TO4
+  };
+
+  var TYPES = ["BM","PD","FA/UT","Idle","Test","Production Preparation"];
+
+  var state = { equipment:null, line:null, type:null };
+
+  var equipmentChips = document.getElementById('equipmentChips');
+  var lineSection = document.getElementById('lineSection');
+  var lineChips = document.getElementById('lineChips');
+  var lineHint = document.getElementById('lineHint');
+  var typeChips = document.getElementById('typeChips');
+  var causeInput = document.getElementById('causeInput');
+  var actionInput = document.getElementById('actionInput');
+  var startTime = document.getElementById('startTime');
+  var endTime = document.getElementById('endTime');
+  var generateBtn = document.getElementById('generateBtn');
+  var errorNote = document.getElementById('errorNote');
+  var outputSection = document.getElementById('output-section');
+  var outputText = document.getElementById('outputText');
+  var copyBtn = document.getElementById('copyBtn');
+
+  function makeChip(container, value, groupKey, onSelect){
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip';
+    btn.textContent = value;
+    btn.dataset.value = value;
+    btn.addEventListener('click', function(){
+      var siblings = container.querySelectorAll('.chip');
+      for (var i=0;i<siblings.length;i++) siblings[i].classList.remove('selected');
+      btn.classList.add('selected');
+      onSelect(value);
+    });
+    container.appendChild(btn);
+    return btn;
+  }
+
+  EQUIPMENT.forEach(function(eq){
+    makeChip(equipmentChips, eq, 'equipment', function(val){
+      state.equipment = val;
+      state.line = null;
+      renderLines();
+    });
+  });
+
+  TYPES.forEach(function(t){
+    makeChip(typeChips, t, 'type', function(val){ state.type = val; });
+  });
+
+  function autoGrow(el){
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 220) + 'px';
+  }
+  [causeInput, actionInput].forEach(function(el){
+    autoGrow(el);
+    el.addEventListener('input', function(){ autoGrow(el); });
+  });
+
+  var nowBtns = document.querySelectorAll('.now-btn');
+  for (var n=0; n<nowBtns.length; n++){
+    nowBtns[n].addEventListener('click', function(){
+      var target = document.getElementById(this.dataset.target);
+      var d = new Date();
+      var hh = String(d.getHours()).padStart(2,'0');
+      var mm = String(d.getMinutes()).padStart(2,'0');
+      target.value = hh + ':' + mm;
+    });
+  }
+
+  function renderLines(){
+    lineChips.innerHTML = '';
+    var lines = state.equipment ? LINE_MAP[state.equipment] : undefined;
+    if (state.equipment && lines === null){
+      lineSection.style.display = 'none';
+      lineHint.textContent = '';
+      return;
+    }
+    lineSection.style.display = '';
+    if (!state.equipment){
+      lineHint.textContent = 'pick equipment first';
+      var note = document.createElement('p');
+      note.className = 'empty-note';
+      note.textContent = 'Select an equipment above to see its lines.';
+      lineChips.appendChild(note);
+      return;
+    }
+    lineHint.textContent = lines.length + ' lines';
+    lines.forEach(function(ln){
+      makeChip(lineChips, ln, 'line', function(val){ state.line = val; });
+    });
+  }
+  renderLines();
+
+  function formatTime(value){
+    if (!value) return '';
+    var parts = value.split(':');
+    var h = parseInt(parts[0], 10);
+    var m = parts[1];
+    var suffix = h >= 12 ? 'PM' : 'AM';
+    var h12 = h % 12;
+    if (h12 === 0) h12 = 12;
+    return h12 + ':' + m + suffix;
+  }
+
+  function validate(){
+    var missing = [];
+    if (!state.equipment) missing.push('equipment');
+    var needsLine = state.equipment && LINE_MAP[state.equipment] !== null;
+    if (needsLine && !state.line) missing.push('line');
+    if (!state.type) missing.push('type');
+    if (!causeInput.value.trim()) missing.push('cause');
+    if (!actionInput.value.trim()) missing.push('action');
+    if (!startTime.value || !endTime.value) missing.push('time');
+    return missing;
+  }
+
+  generateBtn.addEventListener('click', function(){
+    var missing = validate();
+    if (missing.length){
+      errorNote.textContent = 'Missing: ' + missing.join(', ');
+      outputSection.classList.remove('show');
+      return;
+    }
+    errorNote.textContent = '';
+
+    var lines = [];
+    lines.push('Equipment: ' + state.equipment);
+    if (LINE_MAP[state.equipment] !== null){
+      lines.push('Line: ' + state.line);
+    }
+    lines.push('Type: ' + state.type);
+    lines.push('Cause: ' + causeInput.value.trim());
+    lines.push('Action: ' + actionInput.value.trim());
+    lines.push('Time: ' + formatTime(startTime.value) + ' -' + formatTime(endTime.value));
+
+    outputText.textContent = lines.join('\n');
+    outputSection.classList.add('show');
+    copyBtn.textContent = 'Copy to clipboard';
+    copyBtn.classList.remove('copied');
+    outputSection.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  });
+
+  copyBtn.addEventListener('click', function(){
+    var text = outputText.textContent;
+    function done(ok){
+      copyBtn.textContent = ok ? 'Copied ✓' : 'Copy failed — select manually';
+      copyBtn.classList.toggle('copied', ok);
+      setTimeout(function(){
+        copyBtn.textContent = 'Copy to clipboard';
+        copyBtn.classList.remove('copied');
+      }, 1800);
+    }
+    try{
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){ done(true); }).catch(function(){ fallback(); });
+      } else {
+        fallback();
+      }
+    } catch(e){ fallback(); }
+
+    function fallback(){
+      try{
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        done(ok);
+      } catch(e2){ done(false); }
+    }
+  });
+
+  var bar = document.querySelector('.bar');
+  if (window.visualViewport && bar){
+    var vv = window.visualViewport;
+    function resizeBar(){
+      var offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      bar.style.bottom = offset + 'px';
+    }
+    vv.addEventListener('resize', resizeBar);
+    vv.addEventListener('scroll', resizeBar);
+    resizeBar();
+  }
+})();
+</script>
