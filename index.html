@@ -1,4 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Downtime Log</title>
+<meta name="description" content="Log CTO Cell Line stoppages and generate a shift WhatsApp message.">
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#eef1ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14181a" media="(prefers-color-scheme: dark)">
+
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Downtime Log">
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
@@ -19,6 +37,8 @@
     --danger:#b3271a;
     --focus:#c9541f;
     --shadow: 0 1px 2px rgba(20,24,21,0.06), 0 4px 14px rgba(20,24,21,0.05);
+    --desk-bg:#dfe3e0;
+    --desk-text:#6b736e;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -38,6 +58,8 @@
       --danger:#e2604f;
       --focus:#e37a3f;
       --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 20px rgba(0,0,0,0.3);
+      --desk-bg:#0b0d0e;
+      --desk-text:#5b6360;
     }
   }
   :root[data-theme="dark"]{
@@ -57,19 +79,85 @@
     --danger:#e2604f;
     --focus:#e37a3f;
     --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 20px rgba(0,0,0,0.3);
+    --desk-bg:#0b0d0e;
+    --desk-text:#5b6360;
   }
 
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html, body{ height:100%; }
   html{ -webkit-text-size-adjust:100%; }
+
+  /* Outer canvas: on a phone this is invisible (the app fills it edge to
+     edge); on anything wider it's the desk the phone sits on. */
   body{
+    margin:0;
+    background:var(--desk-bg);
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+    min-height:100dvh;
+  }
+
+  /* .app is the phone's outer shell — it only ever clips (overflow:hidden)
+     and frames; all scrolling happens one level in, on .app-scroll. Keeping
+     the two apart is what lets the sticky action bar and the rounded-frame
+     clipping coexist without fighting each other. */
+  .app{
+    width:100%;
+    max-width:430px;
+    min-height:100vh;
+    min-height:100dvh;
+  }
+  .app-scroll{
     background:var(--bg);
     color:var(--text);
     font-family:'IBM Plex Sans', system-ui, sans-serif;
+    display:flex;
+    flex-direction:column;
+    min-height:100%;
     padding-inline:16px;
-    padding-block: 20px calc(112px + env(safe-area-inset-bottom, 0px));
-    max-width:640px;
-    margin-inline:auto;
+    padding-block: calc(20px + env(safe-area-inset-top, 0px)) calc(16px + env(safe-area-inset-bottom, 0px));
     overscroll-behavior-y:contain;
+  }
+
+  .desk-note{
+    display:none;
+    position:fixed;
+    top:14px;
+    left:0; right:0;
+    text-align:center;
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
+    font-size:11.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--desk-text);
+  }
+
+  /* Past phone width, stop stretching the tool full-bleed and show it as
+     a phone screen instead — this interface is built for a shift-floor
+     phone, not a desktop window. */
+  @media (min-width: 481px){
+    body{
+      align-items:center;
+      padding-block:40px;
+    }
+    .app{
+      height:min(860px, calc(100vh - 80px));
+      height:min(860px, calc(100dvh - 80px));
+      min-height:0;
+      border-radius:36px;
+      overflow:hidden;
+      box-shadow:0 30px 70px rgba(0,0,0,0.28), 0 0 0 1px var(--border);
+    }
+    .app-scroll{
+      height:100%;
+      min-height:100%;
+      overflow-y:auto;
+      overflow-x:hidden;
+    }
+    .desk-note{
+      display:block;
+    }
   }
 
   .eyebrow{
@@ -244,9 +332,10 @@
   }
 
   .bar{
-    position:fixed;
-    left:0; right:0; bottom:0;
-    padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    position:sticky;
+    bottom:0;
+    margin-top:auto;
+    padding:16px 0 calc(4px + env(safe-area-inset-bottom, 0px));
     background:linear-gradient(to top, var(--bg) 66%, transparent);
   }
   .bar-inner{ max-width:608px; margin-inline:auto; }
@@ -312,6 +401,11 @@
     color:var(--accent-ink);
   }
 </style>
+</head>
+<body>
+
+<p class="desk-note">Built for a shift-floor phone — viewing at phone width</p>
+<div class="app"><div class="app-scroll">
 
 <p class="eyebrow">NextStar Energy · CTO Cell Line</p>
 <h1>Downtime Log</h1>
@@ -378,6 +472,8 @@
     <button id="generateBtn" type="button">Generate message</button>
   </div>
 </div>
+
+</div></div>
 
 <script>
 (function(){
@@ -575,16 +671,12 @@
     }
   });
 
-  var bar = document.querySelector('.bar');
-  if (window.visualViewport && bar){
-    var vv = window.visualViewport;
-    function resizeBar(){
-      var offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      bar.style.bottom = offset + 'px';
-    }
-    vv.addEventListener('resize', resizeBar);
-    vv.addEventListener('scroll', resizeBar);
-    resizeBar();
+  if ('serviceWorker' in navigator){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){ /* offline support is best-effort */ });
+    });
   }
 })();
 </script>
+</body>
+</html>
