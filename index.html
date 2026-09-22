@@ -60,13 +60,18 @@
   }
 
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html, body{ height:100%; }
   html{ -webkit-text-size-adjust:100%; }
   body{
     background:var(--bg);
     color:var(--text);
     font-family:'IBM Plex Sans', system-ui, sans-serif;
+    display:flex;
+    flex-direction:column;
+    min-height:100vh;
+    min-height:100dvh;
     padding-inline:16px;
-    padding-block: 20px calc(112px + env(safe-area-inset-bottom, 0px));
+    padding-block: 20px calc(16px + env(safe-area-inset-bottom, 0px));
     max-width:640px;
     margin-inline:auto;
     overscroll-behavior-y:contain;
@@ -244,9 +249,10 @@
   }
 
   .bar{
-    position:fixed;
-    left:0; right:0; bottom:0;
-    padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    position:sticky;
+    bottom:0;
+    margin-top:auto;
+    padding:16px 0 4px;
     background:linear-gradient(to top, var(--bg) 66%, transparent);
   }
   .bar-inner{ max-width:608px; margin-inline:auto; }
@@ -574,17 +580,5 @@
       } catch(e2){ done(false); }
     }
   });
-
-  var bar = document.querySelector('.bar');
-  if (window.visualViewport && bar){
-    var vv = window.visualViewport;
-    function resizeBar(){
-      var offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-      bar.style.bottom = offset + 'px';
-    }
-    vv.addEventListener('resize', resizeBar);
-    vv.addEventListener('scroll', resizeBar);
-    resizeBar();
-  }
 })();
 </script>
